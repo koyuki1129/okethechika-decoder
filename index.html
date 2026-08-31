@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>おけてちか解読ツール</title>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+      color: #222;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    section {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: bold;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      font-size: 16px;
+    }
+
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    button {
+      cursor: pointer;
+      background: #222;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      margin-top: 16px;
+    }
+
+    button:hover {
+      opacity: 0.85;
+    }
+
+    .result {
+      margin-top: 15px;
+      padding: 15px;
+      background: #eee;
+      border-radius: 8px;
+      min-height: 30px;
+      white-space: pre-wrap;
+    }
+
+    .dictionary-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .key {
+      font-family: monospace;
+      font-weight: bold;
+    }
+
+    .empty {
+      color: #777;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>おけてちか解読ツール</h1>
+
+  <section>
+    <h2>① 未解読文字を登録</h2>
+
+    <p>
+      「篇」と「旁」の組み合わせに、対応する日本語の文字を登録します。
+    </p>
+
+    <label for="hen">篇</label>
+    <select id="hen">
+      <option value="">篇を選択してください</option>
+    </select>
+
+    <label for="tsukuri">旁</label>
+    <select id="tsukuri">
+      <option value="">旁を選択してください</option>
+    </select>
+
+    <label for="translation">対応する日本語</label>
+    <input
+      id="translation"
+      type="text"
+      placeholder="例：あ、漢、日 など"
+    >
+
+    <button id="registerButton">
+      登録する
+    </button>
+
+    <div id="registerResult" class="result"></div>
+  </section>
+
+
+  <section>
+    <h2>② 登録した文字を検索</h2>
+
+    <label for="searchHen">篇</label>
+    <select id="searchHen">
+      <option value="">篇を選択してください</option>
+    </select>
+
+    <label for="searchTsukuri">旁</label>
+    <select id="searchTsukuri">
+      <option value="">旁を選択してください</option>
+    </select>
+
+    <button id="searchButton">
+      検索する
+    </button>
+
+    <div id="searchResult" class="result"></div>
+  </section>
+
+
+  <section>
+    <h2>③ 未解読文字の文章を解読</h2>
+
+    <p>
+      文章中の各文字を、登録した対応表を使って日本語に変換します。
+    </p>
+
+    <textarea
+      id="decodeInput"
+      placeholder="未解読文字の文章を入力してください"
+    ></textarea>
+
+    <button id="decodeButton">
+      解読する
+    </button>
+
+    <div id="decodeResult" class="result"></div>
+  </section>
+
+
+  <section>
+    <h2>④ 登録済みの対応表</h2>
+
+    <div id="dictionaryList"></div>
+  </section>
+
+
+  <script src="script.js"></script>
+
+  <script>
+
+    /*
+     * ==========================================
+     * おけてちか解読ツール
+     * ==========================================
+     *
+     * 篇 20種類
+     * 旁 70種類
+     *
+     * 篇 + 旁 の組み合わせを
+     * 日本語の文字に対応させる。
+     */
+
+    const dictionaryKey = "oketechika_dictionary";
+
+
+    // ------------------------------------------
+    // 篇・旁の一覧
+    // ------------------------------------------
+
+    const henList = [];
+
+    for (let i = 1; i <= 20; i++) {
+      henList.push(String(i));
+    }
+
+    const tsukuriList = [];
+
+    for (let i = 1; i <= 70; i++) {
+      tsukuriList.push(String(i));
+    }
+
+
+    // ------------------------------------------
+    // セレクトボックスを作る
+    // ------------------------------------------
+
+    function setupSelect(selectId, list, label) {
+
+      const select = document.getElementById(selectId);
+
+      list.forEach(value => {
+
+        const option = document.createElement("option");
+
+        option.value = value;
+        option.textContent = label + value;
+
+        select.appendChild(option);
+
+      });
+
+    }
+
+
+    setupSelect("hen", henList, "篇 ");
+    setupSelect("tsukuri", tsukuriList, "旁 ");
+
+    setupSelect("searchHen", henList, "篇 ");
+    setupSelect("searchTsukuri", tsukuriList, "旁 ");
+
+
+    // ------------------------------------------
+    // 辞書を読み込む
+    // ------------------------------------------
+
+    function loadDictionary() {
+
+      const saved =
+        localStorage.getItem(dictionaryKey);
+
+      if (!saved) {
+        return {};
+      }
+
+      try {
+        return JSON.parse(saved);
+      } catch (error) {
+
+        console.error(error);
+
+        return {};
+      }
+    }
+
+
+    // ------------------------------------------
+    // 辞書を保存する
+    // ------------------------------------------
+
+    function saveDictionary(dictionary) {
+
+      localStorage.setItem(
+        dictionaryKey,
+        JSON.stringify(dictionary)
+      );
+
+    }
+
+
+    // ------------------------------------------
+    // キーを作る
+    // ------------------------------------------
+
+    function makeKey(hen, tsukuri) {
+
+      return hen + ":" + tsukuri;
+
+    }
+
+
+    // ------------------------------------------
+    // 登録
+    // ------------------------------------------
+
+    document
+      .getElementById("registerButton")
+      .addEventListener("click", function() {
+
+        const hen =
+          document.getElementById("hen").value;
+
+        const tsukuri =
+          document.getElementById("tsukuri").value;
+
+        const translation =
+          document.getElementById("translation").value.trim();
+
+
+        if (!hen || !tsukuri) {
+
+          document.getElementById("registerResult")
+            .textContent =
+            "篇と旁を選択してください。";
+
+          return;
+        }
+
+
+        if (!translation) {
+
+          document.getElementById("registerResult")
+            .textContent =
+            "対応する日本語を入力してください。";
+
+          return;
+        }
+
+
+        const dictionary =
+          loadDictionary();
+
+
+        const key =
+          makeKey(hen, tsukuri);
+
+
+        dictionary[key] =
+          translation;
+
+
+        saveDictionary(dictionary);
+
+
+        document.getElementById("registerResult")
+          .textContent =
+          "登録しました：篇 " +
+          hen +
+          " ＋ 旁 " +
+          tsukuri +
+          " → " +
+          translation;
+
+
+        document.getElementById("translation").value = "";
+
+
+        updateDictionaryList();
+
+      });
+
+
+    // ------------------------------------------
+    // 検索
+    // ------------------------------------------
+
+    document
+      .getElementById("searchButton")
+      .addEventListener("click", function() {
+
+        const hen =
+          document.getElementById("searchHen").value;
+
+        const tsukuri =
+          document.getElementById("searchTsukuri").value;
+
+
+        if (!hen || !tsukuri) {
+
+          document.getElementById("searchResult")
+            .textContent =
+            "篇と旁を選択してください。";
+
+          return;
+        }
+
+
+        const dictionary =
+          loadDictionary();
+
+
+        const key =
+          makeKey(hen, tsukuri);
+
+
+        const translation =
+          dictionary[key];
+
+
+        if (translation) {
+
+          document.getElementById("searchResult")
+            .textContent =
+            "対応する文字： " +
+            translation;
+
+        } else {
+
+          document.getElementById("searchResult")
+            .textContent =
+            "まだ登録されていません。";
+
+        }
+
+      });
+
+
+    // ------------------------------------------
+    // 登録済み一覧
+    // ------------------------------------------
+
+    function updateDictionaryList() {
+
+      const container =
+        document.getElementById("dictionaryList");
+
+
+      const dictionary =
+        loadDictionary();
+
+
+      const keys =
+        Object.keys(dictionary);
+
+
+      container.innerHTML = "";
+
+
+      if (keys.length === 0) {
+
+        const empty =
+          document.createElement("p");
+
+        empty.className = "empty";
+
+        empty.textContent =
+          "まだ文字が登録されていません。";
+
+        container.appendChild(empty);
+
+        return;
+      }
+
+
+      keys.sort();
+
+
+      keys.forEach(key => {
+
+        const item =
+          document.createElement("div");
+
+        item.className =
+          "dictionary-item";
+
+
+        const keyElement =
+          document.createElement("span");
+
+        keyElement.className =
+          "key";
+
+        keyElement.textContent =
+          key;
+
+
+        const valueElement =
+          document.createElement("span");
+
+        valueElement.textContent =
+          dictionary[key];
+
+
+        item.appendChild(keyElement);
+        item.appendChild(valueElement);
+
+
+        container.appendChild(item);
+
+      });
+
+    }
+
+
+    // ------------------------------------------
+    // 初期表示
+    // ------------------------------------------
+
+    updateDictionaryList();
+
+
+    // ------------------------------------------
+    // 文章の解読
+    // ------------------------------------------
+
+    document
+      .getElementById("decodeButton")
+      .addEventListener("click", function() {
+
+        const input =
+          document.getElementById("decodeInput").value;
+
+
+        if (!input.trim()) {
+
+          document.getElementById("decodeResult")
+            .textContent =
+            "解読する文章を入力してください。";
+
+          return;
+
+        }
+
+
+        /*
+         * ここは今後、
+         *
+         * 「未解読文字の画像」
+         * ↓
+         * 「篇＋旁」
+         * ↓
+         * 「日本語」
+         *
+         * という仕組みにつなげます。
+         *
+         * 現段階では登録システムを先に完成させます。
+         */
+
+        const dictionary =
+          loadDictionary();
+
+
+        let result = "";
+
+
+        for (const character of input) {
+
+          /*
+           * 現在は文章入力部分の基本構造だけ作成。
+           * 実際の未解読文字画像との対応処理は
+           * 次の段階で追加します。
+           */
+
+          result += character;
+
+        }
+
+
+        document.getElementById("decodeResult")
+          .textContent =
+          result;
+
+      });
+
+  </script>
+
+</body>
+</html>
