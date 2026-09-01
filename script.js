@@ -1,254 +1,1001 @@
-// ========================================
-// おけてちか解読ツール
-// 解読データ管理プログラム
-// ========================================
-
-// 篇は20種類
-const HEN_COUNT = 20;
-
-// 旁は70種類
-const TSUKURI_COUNT = 70;
+/* ======================================
+   おけてちか解読ツール
+   ====================================== */
 
 
-// ========================================
-// 解読データ
-// ========================================
-//
-// 形式：
-// "篇番号-旁番号": "現代語の文字"
-//
-// 例：
-// "1-1": "あ"
-// なら「篇1＋旁1」は「あ」を意味する。
-//
+/* ======================================
+   保存場所
+   ====================================== */
 
-let dictionary = {};
+const dictionaryKey =
+  "oketechika_dictionary";
 
 
-// ========================================
-// 篇・旁のIDを作る
-// ========================================
+/* ======================================
+   篇・旁
+   ====================================== */
 
-function makeKey(hen, tsukuri) {
-    return `${hen}-${tsukuri}`;
-}
-
-
-// ========================================
-// 解読結果を登録する
-// ========================================
-
-function addTranslation(hen, tsukuri, translation) {
-    const key = makeKey(hen, tsukuri);
-
-    // 篇・旁の番号が正しいか確認
-    if (hen < 1 || hen > HEN_COUNT) {
-        throw new Error("篇の番号は1〜20で指定してください。");
-    }
-
-    if (tsukuri < 1 || tsukuri > TSUKURI_COUNT) {
-        throw new Error("旁の番号は1〜70で指定してください。");
-    }
-
-    if (!translation || translation.trim() === "") {
-        throw new Error("訳を入力してください。");
-    }
-
-    dictionary[key] = translation.trim();
-
-    saveDictionary();
-}
+const henCount = 20;
+const bouCount = 70;
 
 
-// ========================================
-// 登録されている訳を取得する
-// ========================================
+/* ======================================
+   現在選択されている篇・旁
+   ====================================== */
 
-function getTranslation(hen, tsukuri) {
-    const key = makeKey(hen, tsukuri);
-
-    return dictionary[key] || null;
-}
+let selectedHen = "";
+let selectedBou = "";
 
 
-// ========================================
-// 登録済みか確認する
-// ========================================
+/* ======================================
+   文章
+   ====================================== */
 
-function hasTranslation(hen, tsukuri) {
-    return getTranslation(hen, tsukuri) !== null;
-}
+let sentenceCharacters = [];
 
 
-// ========================================
-// 未解読文字を現代語に変換する
-// ========================================
-//
-// 例：
-//
-// [
-//     { hen: 1, tsukuri: 3 },
-//     { hen: 4, tsukuri: 12 },
-//     { hen: 2, tsukuri: 8 }
-// ]
-//
-// ↓
-//
-// "あいう"
-//
-
-function translateCharacters(characters) {
-    return characters.map(character => {
-
-        const translation = getTranslation(
-            character.hen,
-            character.tsukuri
-        );
-
-        // まだ解読されていない文字
-        if (translation === null) {
-            return "□";
-        }
-
-        return translation;
-
-    }).join("");
-}
-
-
-// ========================================
-// データをブラウザに保存
-// ========================================
-
-function saveDictionary() {
-    localStorage.setItem(
-        "okethechika_dictionary",
-        JSON.stringify(dictionary)
-    );
-}
-
-
-// ========================================
-// 保存されているデータを読み込む
-// ========================================
+/* ======================================
+   辞書を読み込む
+   ====================================== */
 
 function loadDictionary() {
 
-    const savedData =
-        localStorage.getItem("okethechika_dictionary");
+  const saved =
+    localStorage.getItem(dictionaryKey);
 
-    if (savedData) {
+  if (!saved) {
+    return {};
+  }
 
-        try {
-            dictionary = JSON.parse(savedData);
+  try {
 
-        } catch (error) {
+    return JSON.parse(saved);
 
-            console.error(
-                "解読データの読み込みに失敗しました。",
-                error
-            );
+  } catch (error) {
 
-            dictionary = {};
-        }
-    }
+    console.error(error);
+
+    return {};
+  }
 }
 
 
-// ========================================
-// 解読データをJSONとして書き出す
-// ========================================
+/* ======================================
+   辞書を保存する
+   ====================================== */
 
-function exportDictionary() {
+function saveDictionary(dictionary) {
 
-    const data = JSON.stringify(
-        dictionary,
-        null,
-        2
+  localStorage.setItem(
+    dictionaryKey,
+    JSON.stringify(dictionary)
+  );
+}
+
+
+/* ======================================
+   組み合わせのキー
+   ====================================== */
+
+function makeKey(hen, bou) {
+
+  return hen + ":" + bou;
+}
+
+
+/* ======================================
+   画像ファイル名
+   ====================================== */
+
+function henImage(number) {
+
+  return "images/hen" +
+    String(number).padStart(2, "0") +
+    ".jpg";
+}
+
+
+function bouImage(number) {
+
+  return "images/bou" +
+    String(number).padStart(2, "0") +
+    ".jpg";
+}
+
+
+/* ======================================
+   篇画像を作る
+   ====================================== */
+
+function createHenGrid() {
+
+  const container =
+    document.getElementById("henGrid");
+
+  for (let i = 1; i <= henCount; i++) {
+
+    const button =
+      document.createElement("button");
+
+    button.className =
+      "image-button";
+
+    button.type = "button";
+
+
+    const image =
+      document.createElement("img");
+
+    image.src =
+      henImage(i);
+
+    image.alt =
+      "篇 " + i;
+
+
+    const number =
+      document.createElement("div");
+
+    number.className =
+      "image-number";
+
+    number.textContent =
+      "篇 " + i;
+
+
+    button.appendChild(image);
+
+    button.appendChild(number);
+
+
+    button.addEventListener(
+      "click",
+      function() {
+
+        selectedHen =
+          String(i);
+
+        updateSelectedImages();
+
+        updateHenSelection();
+
+      }
     );
 
-    return data;
+
+    container.appendChild(button);
+  }
 }
 
 
-// ========================================
-// JSONから解読データを読み込む
-// ========================================
+/* ======================================
+   旁画像を作る
+   ====================================== */
 
-function importDictionary(jsonData) {
+function createBouGrid() {
 
-    try {
+  const container =
+    document.getElementById("bouGrid");
 
-        const importedData =
-            JSON.parse(jsonData);
+  for (let i = 1; i <= bouCount; i++) {
 
-        if (
-            typeof importedData !== "object" ||
-            importedData === null ||
-            Array.isArray(importedData)
-        ) {
-            throw new Error(
-                "正しい解読データではありません。"
-            );
-        }
+    const button =
+      document.createElement("button");
 
-        dictionary = importedData;
+    button.className =
+      "image-button";
 
-        saveDictionary();
+    button.type = "button";
 
-        return true;
 
-    } catch (error) {
+    const image =
+      document.createElement("img");
 
-        console.error(
-            "解読データの読み込みに失敗しました。",
-            error
+    image.src =
+      bouImage(i);
+
+    image.alt =
+      "旁 " + i;
+
+
+    const number =
+      document.createElement("div");
+
+    number.className =
+      "image-number";
+
+    number.textContent =
+      "旁 " + i;
+
+
+    button.appendChild(image);
+
+    button.appendChild(number);
+
+
+    button.addEventListener(
+      "click",
+      function() {
+
+        selectedBou =
+          String(i);
+
+        updateSelectedImages();
+
+        updateBouSelection();
+
+      }
+    );
+
+
+    container.appendChild(button);
+  }
+}
+
+
+/* ======================================
+   選択中の画像を表示
+   ====================================== */
+
+function updateSelectedImages() {
+
+  const henArea =
+    document.getElementById("selectedHen");
+
+  const bouArea =
+    document.getElementById("selectedBou");
+
+
+  henArea.innerHTML = "";
+
+  bouArea.innerHTML = "";
+
+
+  if (selectedHen) {
+
+    const image =
+      document.createElement("img");
+
+    image.src =
+      henImage(selectedHen);
+
+    henArea.appendChild(image);
+
+  } else {
+
+    henArea.textContent =
+      "まだ選択されていません";
+  }
+
+
+  if (selectedBou) {
+
+    const image =
+      document.createElement("img");
+
+    image.src =
+      bouImage(selectedBou);
+
+    bouArea.appendChild(image);
+
+  } else {
+
+    bouArea.textContent =
+      "まだ選択されていません";
+  }
+}
+
+
+/* ======================================
+   篇の選択状態
+   ====================================== */
+
+function updateHenSelection() {
+
+  const buttons =
+    document.querySelectorAll(
+      "#henGrid .image-button"
+    );
+
+
+  buttons.forEach(
+    function(button, index) {
+
+      const number =
+        String(index + 1);
+
+      button.classList.toggle(
+        "selected",
+        number === selectedHen
+      );
+
+    }
+  );
+}
+
+
+/* ======================================
+   旁の選択状態
+   ====================================== */
+
+function updateBouSelection() {
+
+  const buttons =
+    document.querySelectorAll(
+      "#bouGrid .image-button"
+    );
+
+
+  buttons.forEach(
+    function(button, index) {
+
+      const number =
+        String(index + 1);
+
+      button.classList.toggle(
+        "selected",
+        number === selectedBou
+      );
+
+    }
+  );
+}
+
+
+/* ======================================
+   セレクトボックス
+   ====================================== */
+
+function setupSelect(
+  selectId,
+  count,
+  label
+) {
+
+  const select =
+    document.getElementById(selectId);
+
+
+  for (let i = 1; i <= count; i++) {
+
+    const option =
+      document.createElement("option");
+
+    option.value =
+      String(i);
+
+    option.textContent =
+      label + i;
+
+    select.appendChild(option);
+  }
+}
+
+
+/* ======================================
+   登録
+   ====================================== */
+
+document
+  .getElementById("registerButton")
+  .addEventListener(
+    "click",
+    function() {
+
+      if (!selectedHen) {
+
+        document.getElementById(
+          "registerResult"
+        ).textContent =
+          "篇を選択してください。";
+
+        return;
+      }
+
+
+      if (!selectedBou) {
+
+        document.getElementById(
+          "registerResult"
+        ).textContent =
+          "旁を選択してください。";
+
+        return;
+      }
+
+
+      const translation =
+        document
+          .getElementById("translation")
+          .value
+          .trim();
+
+
+      if (!translation) {
+
+        document.getElementById(
+          "registerResult"
+        ).textContent =
+          "対応する日本語を入力してください。";
+
+        return;
+      }
+
+
+      const dictionary =
+        loadDictionary();
+
+
+      const key =
+        makeKey(
+          selectedHen,
+          selectedBou
         );
 
-        return false;
+
+      dictionary[key] =
+        translation;
+
+
+      saveDictionary(dictionary);
+
+
+      document.getElementById(
+        "registerResult"
+      ).textContent =
+        "登録しました！\n" +
+        "篇 " + selectedHen +
+        " ＋ 旁 " + selectedBou +
+        " → " + translation;
+
+
+      document.getElementById(
+        "translation"
+      ).value = "";
+
+
+      updateDictionaryList();
+
     }
+  );
+
+
+/* ======================================
+   検索
+   ====================================== */
+
+document
+  .getElementById("searchButton")
+  .addEventListener(
+    "click",
+    function() {
+
+      const hen =
+        document.getElementById(
+          "searchHen"
+        ).value;
+
+
+      const bou =
+        document.getElementById(
+          "searchBou"
+        ).value;
+
+
+      const result =
+        document.getElementById(
+          "searchResult"
+        );
+
+
+      if (!hen || !bou) {
+
+        result.textContent =
+          "篇と旁を選択してください。";
+
+        return;
+      }
+
+
+      const dictionary =
+        loadDictionary();
+
+
+      const key =
+        makeKey(hen, bou);
+
+
+      if (dictionary[key]) {
+
+        result.textContent =
+          "対応する日本語： " +
+          dictionary[key];
+
+      } else {
+
+        result.textContent =
+          "まだ登録されていません。";
+      }
+
+    }
+  );
+
+
+/* ======================================
+   文章に文字を追加
+   ====================================== */
+
+document
+  .getElementById("addCharacterButton")
+  .addEventListener(
+    "click",
+    function() {
+
+      const hen =
+        document.getElementById(
+          "sentenceHen"
+        ).value;
+
+
+      const bou =
+        document.getElementById(
+          "sentenceBou"
+        ).value;
+
+
+      if (!hen || !bou) {
+
+        alert(
+          "篇と旁を選択してください。"
+        );
+
+        return;
+      }
+
+
+      sentenceCharacters.push({
+
+        hen: hen,
+
+        bou: bou
+
+      });
+
+
+      updateSentence();
+
+    }
+  );
+
+
+/* ======================================
+   空白を追加
+   ====================================== */
+
+document
+  .getElementById("addSpaceButton")
+  .addEventListener(
+    "click",
+    function() {
+
+      sentenceCharacters.push({
+        space: true
+      });
+
+      updateSentence();
+
+    }
+  );
+
+
+/* ======================================
+   文章をクリア
+   ====================================== */
+
+document
+  .getElementById("clearSentenceButton")
+  .addEventListener(
+    "click",
+    function() {
+
+      sentenceCharacters = [];
+
+      updateSentence();
+
+    }
+  );
+
+
+/* ======================================
+   文章を表示
+   ====================================== */
+
+function updateSentence() {
+
+  const area =
+    document.getElementById(
+      "sentenceArea"
+    );
+
+
+  const decoded =
+    document.getElementById(
+      "decodedSentence"
+    );
+
+
+  const details =
+    document.getElementById(
+      "sentenceDetails"
+    );
+
+
+  area.innerHTML = "";
+
+  details.innerHTML = "";
+
+
+  const dictionary =
+    loadDictionary();
+
+
+  let decodedText = "";
+
+
+  if (sentenceCharacters.length === 0) {
+
+    area.textContent =
+      "まだ文字がありません。";
+
+    decoded.textContent =
+      "まだ文字がありません。";
+
+    return;
+  }
+
+
+  sentenceCharacters.forEach(
+    function(character) {
+
+      /* 空白 */
+
+      if (character.space) {
+
+        const space =
+          document.createElement("div");
+
+        space.className =
+          "sentence-space";
+
+        area.appendChild(space);
+
+        decodedText += " ";
+
+        return;
+      }
+
+
+      const key =
+        makeKey(
+          character.hen,
+          character.bou
+        );
+
+
+      const translation =
+        dictionary[key] || "□";
+
+
+      /* ------------------------------
+         文章上の元画像
+         ------------------------------ */
+
+      const characterBox =
+        document.createElement("div");
+
+      characterBox.className =
+        "sentence-character";
+
+
+      const images =
+        document.createElement("div");
+
+      images.className =
+        "sentence-character-images";
+
+
+      const henImg =
+        document.createElement("img");
+
+      henImg.src =
+        henImage(character.hen);
+
+
+      const bouImg =
+        document.createElement("img");
+
+      bouImg.src =
+        bouImage(character.bou);
+
+
+      images.appendChild(henImg);
+
+      images.appendChild(bouImg);
+
+
+      const translationElement =
+        document.createElement("div");
+
+      translationElement.className =
+        "sentence-translation";
+
+      translationElement.textContent =
+        translation;
+
+
+      characterBox.appendChild(images);
+
+      characterBox.appendChild(
+        translationElement
+      );
+
+
+      area.appendChild(characterBox);
+
+
+      /* ------------------------------
+         日本語
+         ------------------------------ */
+
+      decodedText += translation;
+
+
+      /* ------------------------------
+         対応表示
+         ------------------------------ */
+
+      const detail =
+        document.createElement("div");
+
+      detail.className =
+        "detail-item";
+
+
+      const detailImages =
+        document.createElement("div");
+
+      detailImages.className =
+        "detail-images";
+
+
+      const detailHen =
+        document.createElement("img");
+
+      detailHen.src =
+        henImage(character.hen);
+
+
+      const detailBou =
+        document.createElement("img");
+
+      detailBou.src =
+        bouImage(character.bou);
+
+
+      detailImages.appendChild(
+        detailHen
+      );
+
+      detailImages.appendChild(
+        detailBou
+      );
+
+
+      const arrow =
+        document.createElement("div");
+
+      arrow.className =
+        "detail-arrow";
+
+      arrow.textContent =
+        "→";
+
+
+      const detailTranslation =
+        document.createElement("div");
+
+      detailTranslation.className =
+        "detail-translation";
+
+      detailTranslation.textContent =
+        translation;
+
+
+      detail.appendChild(
+        detailImages
+      );
+
+      detail.appendChild(arrow);
+
+      detail.appendChild(
+        detailTranslation
+      );
+
+
+      details.appendChild(detail);
+
+    }
+  );
+
+
+  decoded.textContent =
+    decodedText;
 }
 
 
-// ========================================
-// 登録されている文字数を取得
-// ========================================
+/* ======================================
+   登録済み一覧
+   ====================================== */
 
-function getDictionaryCount() {
-    return Object.keys(dictionary).length;
+function updateDictionaryList() {
+
+  const container =
+    document.getElementById(
+      "dictionaryList"
+    );
+
+
+  const dictionary =
+    loadDictionary();
+
+
+  container.innerHTML = "";
+
+
+  const keys =
+    Object.keys(dictionary);
+
+
+  if (keys.length === 0) {
+
+    const empty =
+      document.createElement("p");
+
+    empty.className =
+      "empty";
+
+    empty.textContent =
+      "まだ文字が登録されていません。";
+
+    container.appendChild(empty);
+
+    return;
+  }
+
+
+  keys.sort(
+    function(a, b) {
+
+      const [aHen, aBou] =
+        a.split(":").map(Number);
+
+      const [bHen, bBou] =
+        b.split(":").map(Number);
+
+
+      if (aHen !== bHen) {
+
+        return aHen - bHen;
+
+      }
+
+
+      return aBou - bBou;
+
+    }
+  );
+
+
+  keys.forEach(
+    function(key) {
+
+      const [hen, bou] =
+        key.split(":");
+
+
+      const item =
+        document.createElement("div");
+
+      item.className =
+        "dictionary-item";
+
+
+      const images =
+        document.createElement("div");
+
+      images.className =
+        "dictionary-images";
+
+
+      const henImg =
+        document.createElement("img");
+
+      henImg.src =
+        henImage(hen);
+
+
+      const bouImg =
+        document.createElement("img");
+
+      bouImg.src =
+        bouImage(bou);
+
+
+      images.appendChild(henImg);
+
+      images.appendChild(bouImg);
+
+
+      const translation =
+        document.createElement("div");
+
+      translation.className =
+        "dictionary-translation";
+
+      translation.textContent =
+        "篇 " + hen +
+        " ＋ 旁 " + bou +
+        " → " +
+        dictionary[key];
+
+
+      item.appendChild(images);
+
+      item.appendChild(translation);
+
+
+      container.appendChild(item);
+
+    }
+  );
 }
 
 
-// ========================================
-// 現在の解読データを取得
-// ========================================
+/* ======================================
+   初期設定
+   ====================================== */
 
-function getDictionary() {
-    return { ...dictionary };
-}
+createHenGrid();
 
-
-// ========================================
-// 起動時に保存データを読み込む
-// ========================================
-
-loadDictionary();
+createBouGrid();
 
 
-// ========================================
-// 開発用テスト
-// ========================================
-//
-// 以下は仕組みの確認用。
-// 後で削除してもOK。
-//
+setupSelect(
+  "searchHen",
+  henCount,
+  "篇 "
+);
 
-// addTranslation(1, 1, "あ");
+setupSelect(
+  "searchBou",
+  bouCount,
+  "旁 "
+);
 
-// console.log(
-//     getTranslation(1, 1)
-// );
 
-// console.log(
-//     getDictionaryCount()
-// );
+setupSelect(
+  "sentenceHen",
+  henCount,
+  "篇 "
+);
+
+setupSelect(
+  "sentenceBou",
+  bouCount,
+  "旁 "
+);
+
+
+updateDictionaryList();
+
+updateSentence();
