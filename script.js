@@ -142,34 +142,7 @@ function createHenButtons() {
   }
 }
 
-    const button = document.createElement("button");
-
-    button.className = "image-button";
-    button.type = "button";
-
-    button.dataset.number = i;
-
-    const image = document.createElement("img");
-
-    image.src = imagePath("hen", i);
-    image.alt = `篇 ${i}`;
-
-    const number = document.createElement("span");
-
-    number.textContent = i;
-
-    button.appendChild(image);
-    button.appendChild(number);
-
-    button.addEventListener("click", function () {
-
-      selectHen(i, button);
-
-    });
-
-    grid.appendChild(button);
-  }
-}
+    
 
 
 // ========================================
