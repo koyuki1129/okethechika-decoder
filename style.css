@@ -498,3 +498,19 @@ footer {
   min-width: 70px;
   min-height: 70px;
 }
+
+/* ③ 篇＋旁の確認をコンパクトにする */
+#pairPreview img {
+  width: 80px !important;
+  height: 80px !important;
+}
+
+#pairPreview .none-preview {
+  width: 80px !important;
+  height: 80px !important;
+  min-height: 80px !important;
+}
+
+#pairPreview {
+  padding: 10px;
+}
