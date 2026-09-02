@@ -514,3 +514,48 @@ footer {
 #pairPreview {
   padding: 10px;
 }
+
+/* ③ 篇＋旁の確認を横並びにする */
+.pair-preview-horizontal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin: 10px 0;
+}
+
+.preview-part {
+  text-align: center;
+}
+
+.preview-label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.pair-preview-horizontal img,
+.pair-preview-horizontal .none-preview {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.none-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fafafa;
+  font-weight: bold;
+}
+
+.preview-plus {
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.pair-name {
+  text-align: center;
+  margin: 5px 0 0;
+}
