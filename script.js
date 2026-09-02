@@ -229,22 +229,34 @@ function updatePairPreview() {
     return;
   }
 
-  let henHTML = "";
+  const henHTML =
+    selectedHen === 0
+      ? `<div class="none-preview">なし</div>`
+      : `<img src="${imagePath("hen", selectedHen)}" alt="篇 ${selectedHen}">`;
 
-  if (selectedHen === 0) {
-    henHTML = `
-      <div class="none-preview">
-        なし
+  const bouHTML =
+    `<img src="${imagePath("bou", selectedBou)}" alt="旁 ${selectedBou}">`;
+
+  area.innerHTML = `
+    <div class="pair-preview-horizontal">
+      <div class="preview-part">
+        <div class="preview-label">篇</div>
+        ${henHTML}
       </div>
-    `;
-  } else {
-    henHTML = `
-      <img
-        src="${imagePath("hen", selectedHen)}"
-        alt="篇 ${selectedHen}"
-      >
-    `;
-  }
+
+      <div class="preview-plus">＋</div>
+
+      <div class="preview-part">
+        <div class="preview-label">旁</div>
+        ${bouHTML}
+      </div>
+    </div>
+
+    <p class="pair-name">
+      篇${selectedHen === 0 ? "なし" : selectedHen} ＋ 旁${selectedBou}
+    </p>
+  `;
+}
 
   const bouHTML = `
     <img
