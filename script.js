@@ -174,23 +174,19 @@ function createBouButtons() {
 // ========================================
 
 function selectHen(number, button) {
-
   selectedHen = number;
 
-  // いったん全部の選択を解除
   document
     .querySelectorAll("#henGrid .image-button")
-    .forEach(function (item) {
+    .forEach(item => item.classList.remove("selected"));
 
-      item.classList.remove("selected");
-
-    });
-
-  // 今押した画像だけ選択状態
   button.classList.add("selected");
 
-  document.getElementById("selectedHenText").textContent =
-    `篇：${number}`;
+  if (number === 0) {
+    document.getElementById("selectedHenText").textContent = "篇：なし";
+  } else {
+    document.getElementById("selectedHenText").textContent = `篇：${number}`;
+  }
 
   updatePairPreview();
 }
