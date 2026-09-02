@@ -222,75 +222,58 @@ function selectBou(number, button) {
 // ========================================
 
 function updatePairPreview() {
-
   const area = document.getElementById("pairPreview");
 
   if (selectedHen === null || selectedBou === null) {
-
-    area.innerHTML =
-      "<p>篇と旁の両方を選択してください。</p>";
-
+    area.innerHTML = "<p>篇と旁の両方を選択してください。</p>";
     return;
   }
 
+  let henHTML = "";
 
-  const image2 = imagePath("bou", selectedBou);
-
-
-  // 篇なしの場合
   if (selectedHen === 0) {
-
-    area.innerHTML = `
-
-      <div class="pair-images">
-
-        <div>
-          <p>篇</p>
-          <div class="none-preview">なし</div>
-        </div>
-
-        <div class="plus">＋</div>
-
-        <div>
-          <p>旁</p>
-          <img src="${image2}" alt="選択した旁">
-        </div>
-
+    henHTML = `
+      <div class="none-preview">
+        なし
       </div>
-
-      <p class="pair-number">
-        篇なし ＋ 旁 ${selectedBou}
-      </p>
     `;
-
-    return;
+  } else {
+    henHTML = `
+      <img
+        src="${imagePath("hen", selectedHen)}"
+        alt="篇 ${selectedHen}"
+      >
+    `;
   }
 
+  const bouHTML = `
+    <img
+      src="${imagePath("bou", selectedBou)}"
+      alt="旁 ${selectedBou}"
+    >
+  `;
 
-  // 通常の篇＋旁
-  const image1 = imagePath("hen", selectedHen);
+  const henText =
+    selectedHen === 0
+      ? "篇なし"
+      : `篇 ${selectedHen}`;
 
   area.innerHTML = `
-
-    <div class="pair-images">
-
+    <div class="pair-preview">
       <div>
-        <p>篇</p>
-        <img src="${image1}" alt="選択した篇">
+        <div class="pair-label">篇</div>
+        ${henHTML}
       </div>
 
-      <div class="plus">＋</div>
+      <div class="pair-plus">＋</div>
 
       <div>
-        <p>旁</p>
-        <img src="${image2}" alt="選択した旁">
+        <div class="pair-label">旁</div>
+        ${bouHTML}
       </div>
-
     </div>
 
-    <p class="pair-number">
-      篇 ${selectedHen} ＋ 旁 ${selectedBou}
-    </p>
+    <p>${henText} ＋ 旁 ${selectedBou}</p>
   `;
 }
 
