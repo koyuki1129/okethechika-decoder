@@ -467,3 +467,30 @@ footer {
   }
 
 }
+
+.none-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 70px;
+
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.none-preview {
+  width: 120px;
+  height: 120px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #ddd;
+  border-radius: 8px;
+
+  background: #f7f7f7;
+
+  font-weight: bold;
+}
