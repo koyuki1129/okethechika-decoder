@@ -525,10 +525,15 @@ function updateSentenceDisplay() {
 
       <div class="sentence-images">
 
-        <img
-          src="${imagePath("hen", item.hen)}"
-          alt="篇 ${item.hen}"
-        >
+        ${item.hen === 0
+  ? `<div class="none-preview sentence-none">なし</div>`
+  : `
+    <img
+      src="${imagePath("hen", item.hen)}"
+      alt="篇 ${item.hen}"
+    >
+  `
+}
 
         <span>＋</span>
 
@@ -616,12 +621,12 @@ function updateDictionaryList() {
 
       <div class="dictionary-images">
 
-        ${item.hen === 0
-  ? `<div class="none-preview sentence-none">なし</div>`
+        ${hen === 0
+  ? `<div class="none-preview dictionary-none">なし</div>`
   : `
     <img
-      src="${imagePath("hen", item.hen)}"
-      alt="篇 ${item.hen}"
+      src="${imagePath("hen", hen)}"
+      alt="篇 ${hen}"
     >
   `
 }
