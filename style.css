@@ -501,14 +501,14 @@ footer {
 
 /* ③ 篇＋旁の確認をコンパクトにする */
 #pairPreview img {
-  width: 80px !important;
-  height: 80px !important;
+  width: 50px !important;
+  height: 50px !important;
 }
 
 #pairPreview .none-preview {
-  width: 80px !important;
-  height: 80px !important;
-  min-height: 80px !important;
+  width: 50px !important;
+  height: 50px !important;
+  min-height: 50px !important;
 }
 
 #pairPreview {
