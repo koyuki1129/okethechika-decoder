@@ -83,7 +83,7 @@ main {
   grid-template-columns:
     repeat(5, 1fr);
 
-  gap: 10px;
+  gap: 5px;
 
   margin-top: 15px;
 }
