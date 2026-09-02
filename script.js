@@ -281,8 +281,41 @@ function updatePairPreview() {
   }
 
 
-  const image1 = imagePath("hen", selectedHen);
   const image2 = imagePath("bou", selectedBou);
+
+
+  // 篇なしの場合
+  if (selectedHen === 0) {
+
+    area.innerHTML = `
+
+      <div class="pair-images">
+
+        <div>
+          <p>篇</p>
+          <div class="none-preview">なし</div>
+        </div>
+
+        <div class="plus">＋</div>
+
+        <div>
+          <p>旁</p>
+          <img src="${image2}" alt="選択した旁">
+        </div>
+
+      </div>
+
+      <p class="pair-number">
+        篇なし ＋ 旁 ${selectedBou}
+      </p>
+    `;
+
+    return;
+  }
+
+
+  // 通常の篇＋旁
+  const image1 = imagePath("hen", selectedHen);
 
   area.innerHTML = `
 
