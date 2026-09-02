@@ -86,57 +86,41 @@ function makeKey(hen, bou) {
 // ========================================
 
 function createHenButtons() {
-
   const grid = document.getElementById("henGrid");
 
-  // 「篇なし」ボタン
+  // 「なし」ボタン
   const noneButton = document.createElement("button");
-
   noneButton.className = "image-button none-button";
   noneButton.type = "button";
+  noneButton.dataset.number = "0";
 
-  const noneText = document.createElement("div");
-
+  const noneText = document.createElement("span");
   noneText.textContent = "なし";
 
   noneButton.appendChild(noneText);
-
-  noneButton.addEventListener("click", function () {
-
-    selectHen(0, noneButton);
-
-  });
+  noneButton.addEventListener("click", () => selectHen(0, noneButton));
 
   grid.appendChild(noneButton);
 
-
-  // 篇01～篇20
+  // 篇1～20
   for (let i = 1; i <= HEN_COUNT; i++) {
-
     const button = document.createElement("button");
 
     button.className = "image-button";
     button.type = "button";
-
     button.dataset.number = i;
 
     const image = document.createElement("img");
-
     image.src = imagePath("hen", i);
     image.alt = `篇 ${i}`;
 
     const number = document.createElement("span");
-
     number.textContent = i;
 
     button.appendChild(image);
     button.appendChild(number);
 
-    button.addEventListener("click", function () {
-
-      selectHen(i, button);
-
-    });
+    button.addEventListener("click", () => selectHen(i, button));
 
     grid.appendChild(button);
   }
