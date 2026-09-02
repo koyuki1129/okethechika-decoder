@@ -616,10 +616,15 @@ function updateDictionaryList() {
 
       <div class="dictionary-images">
 
-        <img
-          src="${imagePath("hen", hen)}"
-          alt="篇 ${hen}"
-        >
+        ${item.hen === 0
+  ? `<div class="none-preview sentence-none">なし</div>`
+  : `
+    <img
+      src="${imagePath("hen", item.hen)}"
+      alt="篇 ${item.hen}"
+    >
+  `
+}
 
         <span>＋</span>
 
