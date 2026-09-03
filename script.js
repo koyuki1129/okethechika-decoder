@@ -571,11 +571,11 @@ function updateDictionaryList() {
     const [aHen, aBou] = a.split(":").map(Number);
     const [bHen, bBou] = b.split(":").map(Number);
 
-    if (aHen !== bHen) {
-      return aHen - bHen;
-    }
-
+    if (aBou !== bBou) {
     return aBou - bBou;
+}
+
+return aHen - bHen;
 
   });
 
