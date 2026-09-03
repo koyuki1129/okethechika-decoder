@@ -81,7 +81,7 @@ main {
   display: grid;
 
   grid-template-columns:
-    repeat(10, 1fr);
+    repeat(14, 1fr);
 
   gap: 5px;
 
