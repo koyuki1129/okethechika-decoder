@@ -258,37 +258,7 @@ function updatePairPreview() {
   `;
 }
 
-  const bouHTML = `
-    <img
-      src="${imagePath("bou", selectedBou)}"
-      alt="旁 ${selectedBou}"
-    >
-  `;
-
-  const henText =
-    selectedHen === 0
-      ? "篇なし"
-      : `篇 ${selectedHen}`;
-
-  area.innerHTML = `
-    <div class="pair-preview">
-      <div>
-        <div class="pair-label">篇</div>
-        ${henHTML}
-      </div>
-
-      <div class="pair-plus">＋</div>
-
-      <div>
-        <div class="pair-label">旁</div>
-        ${bouHTML}
-      </div>
-    </div>
-
-    <p>${henText} ＋ 旁 ${selectedBou}</p>
-  `;
-}
-
+  
 
 // ========================================
 // 日本語を登録
